@@ -60,9 +60,9 @@ class ZonalLineLengthAlgorithm(QgsProcessingAlgorithm):
                     self.tr('Count'),
                     self.tr('Mean'),
                     self.tr('Median'),
-                    self.tr('Minimum'),
-                    self.tr('Maximum'),
-                    self.tr('Standard deviation')
+                    # self.tr('Minimum'),
+                    # self.tr('Maximum'),
+                    # self.tr('Standard deviation')
                 ],
                 allowMultiple=True,
                 defaultValue=[0]  # Default: Sum
@@ -123,6 +123,12 @@ class ZonalLineLengthAlgorithm(QgsProcessingAlgorithm):
         if polygon_id_field not in polygon_source.fields().names():
             raise QgsProcessingException(self.tr('Polygon identifier field does not exist in the polygon layer. Please select a valid field.'))
 
+        # polygon_id_field uniqueness check
+        if polygon_id_field in line_source.fields().names():
+            raise QgsProcessingException(
+                self.tr('The polygon identifier field "{0}" also exists in the line layer. Please choose a unique field name that does not exist in the line layer.').format(polygon_id_field)
+            )
+
         # Get ID field type
         id_field_obj = polygon_source.fields().field(polygon_id_field)
         id_field_type = id_field_obj.type()
@@ -180,7 +186,8 @@ class ZonalLineLengthAlgorithm(QgsProcessingAlgorithm):
         idx = intersected_layer.fields().indexFromName(length_field)
         for feat in intersected_layer.getFeatures():
             geom = feat.geometry()
-            feat[length_field] = geom.length()
+            length = geom.length() if geom and not geom.isEmpty() else 0.0
+            feat[length_field] = length
             intersected_layer.updateFeature(feat)
         intersected_layer.commitChanges()
 
@@ -194,12 +201,14 @@ class ZonalLineLengthAlgorithm(QgsProcessingAlgorithm):
             1: ('count', 'ZLL_COUNT', 2),    # Integer
             2: ('mean', 'ZLL_MEAN', 6),      # Double
             3: ('median', 'ZLL_MEDIAN', 6),  # Double
-            4: ('min', 'ZLL_MIN', 6),        # Double
-            5: ('max', 'ZLL_MAX', 6),        # Double
-            6: ('stdev', 'ZLL_STDDEV', 6),   # Double
+            # 4: ('min', 'ZLL_MIN', 6),        # Double
+            # 5: ('max', 'ZLL_MAX', 6),        # Double
+            # 6: ('stdev', 'ZLL_STDDEV', 6),   # Double
         }
         aggregates = []
         for idx in stats_choices:
+            if idx in (4, 5):
+                continue
             agg, name, typ = stat_map.get(idx, ('sum', 'ZLL_SUM', 6))
             aggregates.append({
                 'aggregate': agg,

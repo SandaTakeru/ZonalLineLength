@@ -6,7 +6,7 @@
 name=Zonal Line Length
 qgisMinimumVersion=3.0
 description=This plugin calculate line length within polygon.
-version=0.20250527
+version=0.20250528
 author=Sanda Takeru
 email=takeru_sanda999@maff.go.jp
 
@@ -20,7 +20,7 @@ repository=https://github.com/SandaTakeru/ZonalLineLength
 
 hasProcessingProvider=yes
 # Uncomment the following line and add your changelog:
-# changelog=
+# changelog=20250527;first release.<br>20250528;aggregate(min/max/std) bug escape.
 
 # Tags are comma separated with spaces allowed
 tags=line, polygon
